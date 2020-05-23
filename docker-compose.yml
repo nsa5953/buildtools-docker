@@ -1,0 +1,39 @@
+version: "3.7"
+services:
+  build-tools:
+    container_name: build-tools
+    volumes:
+      - build-data:/opt/tools
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: build-tools
+    tty: true
+    privileged: true
+    restart: always
+    networks:
+      - buildtools
+
+  test-server:
+    container_name: test-server
+    build: https://github.com/nsa5953/ansible-docker.git
+    image: centos8-systemd
+    privileged: true
+    restart: always
+    ports:
+      - "5001:22"
+      - "5080:80"
+    networks: 
+      - buildtools
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - build-data:/opt/tools:ro
+    env_file:
+      - .env
+    environment:
+      - PATH=${PATH}:${BUILD_TOOLS}
+networks: 
+  buildtools: {}
+
+volumes:
+  build-data:
